@@ -1,2 +1,2 @@
-# Chameleon-Ultra-Cey-GEn
+# Chameleon-Ultra-key-GEn
 Программа для генерации словарей для вашего chameleon Ultra
