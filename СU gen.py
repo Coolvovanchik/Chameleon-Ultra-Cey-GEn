@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 # Конфигурация
 AUTHOR_TAG = "@Pinaplast42"
-VERSION = "C.U.Gen v7.1"
+VERSION = "C.U.Gen v7.2"
 DEFAULT_FILENAME = "cu_keys.dic"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SAVE_FOLDER = os.path.join(SCRIPT_DIR, "CUGEN_KEYS")
@@ -50,67 +50,80 @@ class KeyGenerator:
         return list(OrderedDict.fromkeys([
             '000000000000', 'FFFFFFFFFFFF',
             'A0A1A2A3A4A5', 'D3F7D3F7D3F7',
-            'A1B2C3D4E5F6', '4B4C4F434B4C'
+            'A1B2C3D4E5F6', '4B4C4F434B4C',
+            '123456789ABC', 'DEADBEEF1234',
+            'A5B4C3D2E1F0', '0F1E2D3C4B5A'
         ]))
 
     @staticmethod
-    def uid_variants(uid):
-        uid = uid.upper().replace(':', '')[:8].ljust(8, 'F')
-        keys = set()
-        
-        patterns = [
-            f"{uid}FFFF",
-            f"FF{uid[2:]}",
-            f"{uid[:6]}0000",
-            f"{uid[:4]}{uid[:4]}"
+    def transport_dictionary():
+        """Возвращает полный словарь транспортных ключей"""
+        keys = [
+            'A0A1A2A3A4A5', 'A82607B01C0D', '2AA05ED1856F', '73068F118C13',
+            'FBC2793D540B', 'AE3D65A3DAD4', 'A73F5DC1D333', '69A32F1C2F19',
+            '9BECDF3D9273', '08B386463229', 'CD4C61C26E3D', '0E8F64340BA4',
+            '6B02733BB6EC', '403D706BA880', 'C11F4597EFB5', '0DB520C78C1C',
+            '3EBCE0925B2F', '16A27AF45407', 'ABA208516740', 'CD64E567ABCD',
+            '764CD061F1E6', '1CC219E9FEC1', '2FE3CB83EA43', '07894FFEC1D6',
+            '04C297B91308', '7A38E3511A38', '7545DF809202', '5125974CD391',
+            'FBF225DC5D58', '2910989B6880', 'EAAC88E5DC99', '2B7F3253FAC5',
+            'D3A297DC2698', '0F1C63013DBA', 'E35173494A81', '6B8BD9860763',
+            'F8493407799D', '5EFBAECEF46B', '31C7610DE3B0', '4ACEC1205D75',
+            '7038CD25C408', 'B39D19A280DF', '70D901648CB9', '73E5B9D9D3A4',
+            '372CC880F216', '9868925175BA', 'CE26ECB95252', '8F79C4FD8A01',
+            'A74332F74994', 'B90DE525CEB6', 'FBA88F109B32', 'EFCB0E689DB3',
+            'C8454C154CB5', 'AB16584C972A', 'ECF751084A80', 'D3EAFB5DF46D',
+            '7DE02A7F6025', '2735FC181807', 'BF23A53C1F63', '2ABA9519F574',
+            'CB9A1F2D7368', '84FD7F7A12B6', 'C7C0ADB3284F', '186D8C4B93F9',
+            '9F131D8C2057', '3A4BBA8ADAF0', '67362D90F973', '8765B17968A2',
+            '6202A38F69E2', '40EAD80721CE', '100533B89331', '0DB5E6523F7C',
+            '653A87594079', '51119DAE5216', 'D8A274B2E026'
         ]
-        
-        print(f"\n{Colors.DARK_GREEN}>>> ИНИЦИАЛИЗАЦИЯ UID-ГЕНЕРАТОРА...")
-        for key in patterns:
-            keys.add(key)
-            print(f"{Colors.GREEN}[+] Паттерн: {Colors.YELLOW}{key}")
-            time.sleep(0.1)
-        
-        print(f"\n{Colors.DARK_GREEN}>>> ГЕНЕРАЦИЯ СЛУЧАЙНЫХ КОМБИНАЦИЙ...")
-        for _ in range(10):
-            while True:
-                key = f"{uid[:6]}{random.choice('0123456789ABCDEF')}{random.choice('0123456789ABCDEF')}"
-                if key not in keys:
-                    keys.add(key)
-                    print(f"{Colors.GREEN}[+] Сгенерирован: {Colors.YELLOW}{key}")
-                    time.sleep(0.05)
-                    break
-        
-        return list(keys)
+        return list(OrderedDict.fromkeys(keys))  # Удаление дубликатов
 
     @staticmethod
-    def transport_keys():
-        return list(OrderedDict.fromkeys([
-            ('08904CA8C148', "Метро (Общий шаблон 1)"),
-            ('76F9D4481315', "Метро (Общий шаблон 2)"),
-            ('4E3554089A12', "Автобус (Стандарт A)"),
-            ('AB34CD56EF78', "Автобус (Стандарт B)"),
-            ('554433221100', "Электрички (Паттерн 5)"),
-            ('0F0F0F0F0F0F', "Специальный транспорт"),
-            ('F0F0F0F0F0F0', "Резервные системы"),
-            ('AABBCCDDEEFF', "Общественный транспорт")
-        ]))
-
-    @staticmethod
-    def random_keys(count):
+    def random_keys(count, mode=0):
         keys = set()
         print(f"\n{Colors.DARK_GREEN}>>> ЗАПУСК СЛУЧАЙНОЙ ГЕНЕРАЦИИ...")
         
+        # Если режим 1, подготовим шаблоны (база + транспорт)
+        templates = []
+        if mode == 1:
+            templates = KeyGenerator.base_keys() + KeyGenerator.transport_dictionary()
+        
         start_time = time.time()
+        last_update = start_time
+        generated = 0
+        
         while len(keys) < count:
-            key = ''.join(random.choice('0123456789ABCDEF') for _ in range(12))
+            if mode == 0:
+                # Режим 0: полностью случайный
+                key = ''.join(random.choices('0123456789ABCDEF', k=12))
+            elif mode == 1 and templates:
+                # Режим 1: частичная замена (8 символов) на основе шаблона
+                base = random.choice(templates)
+                positions = random.sample(range(12), 8)  # 8 случайных позиций
+                new_key = list(base)
+                for pos in positions:
+                    new_key[pos] = random.choice('0123456789ABCDEF')
+                key = ''.join(new_key)
+            else:
+                # Резервный вариант
+                key = ''.join(random.choices('0123456789ABCDEF', k=12))
+            
             if key not in keys:
                 keys.add(key)
-                current = len(keys)
-                if current % 1000 == 0 or current == count:
-                    elapsed = time.time() - start_time
-                    print(f"{Colors.GREEN}[~] Прогресс: {current}/{count} "
-                          f"| Время: {elapsed:.1f}s {Colors.YELLOW}", end='\r')
+                generated += 1
+                current_time = time.time()
+                
+                # Обновление прогресса каждые 0.5 секунд
+                if current_time - last_update > 0.5 or generated == count:
+                    elapsed = current_time - start_time
+                    speed = generated / elapsed if elapsed > 0 else 0
+                    print(f"{Colors.GREEN}[~] Прогресс: {generated}/{count} | "
+                          f"Скорость: {speed:.1f} keys/sec | "
+                          f"Время: {elapsed:.1f}s {Colors.YELLOW}", end='\r')
+                    last_update = current_time
         
         print(f"\n{Colors.GREEN}[✓] ГЕНЕРАЦИЯ УСПЕШНО ЗАВЕРШЕНА")
         return list(keys)
@@ -120,14 +133,13 @@ def menu():
         show_banner()
         print(f"{Colors.DARK_GREEN}╔════════════════════════════════════════════╗")
         print(f"{Colors.GREEN}║ {Colors.YELLOW}1.{Colors.GREEN} БАЗОВЫЕ КЛЮЧИ               {Colors.DARK_GREEN}[STATUS: ONLINE]{Colors.GREEN} ║")
-        print(f"{Colors.GREEN}║ {Colors.YELLOW}2.{Colors.GREEN} UID-ГЕНЕРАТОР              {Colors.DARK_GREEN}[STATUS: ONLINE]{Colors.GREEN} ║")
-        print(f"{Colors.GREEN}║ {Colors.YELLOW}3.{Colors.GREEN} ТРАНСПОРТНЫЕ СИСТЕМЫ       {Colors.DARK_GREEN}[STATUS: ONLINE]{Colors.GREEN} ║")
-        print(f"{Colors.GREEN}║ {Colors.YELLOW}4.{Colors.GREEN} СЛУЧАЙНАЯ ГЕНЕРАЦИЯ        {Colors.DARK_GREEN}[STATUS: ONLINE]{Colors.GREEN} ║")
+        print(f"{Colors.GREEN}║ {Colors.YELLOW}2.{Colors.GREEN} ТРАНСПОРТНЫЙ СЛОВАРЬ       {Colors.DARK_GREEN}[STATUS: ONLINE]{Colors.GREEN} ║")
+        print(f"{Colors.GREEN}║ {Colors.YELLOW}3.{Colors.GREEN} СЛУЧАЙНАЯ ГЕНЕРАЦИЯ        {Colors.DARK_GREEN}[STATUS: ONLINE]{Colors.GREEN} ║")
         print(f"{Colors.GREEN}║ {Colors.YELLOW}0.{Colors.RED} ВЫХОД                      {Colors.DARK_GREEN}[STATUS: STANDBY]{Colors.GREEN} ║")
         print(f"{Colors.DARK_GREEN}╚════════════════════════════════════════════╝")
         
         choice = input(f"\n{Colors.GREEN}>>> ВВЕДИТЕ КОМАНДУ: {Colors.YELLOW}")
-        if choice in {'0','1','2','3','4'}:
+        if choice in {'0','1','2','3'}:
             return choice
         print(f"{Colors.RED}⚠ ОШИБКА: НЕВЕРНАЯ КОМАНДА!{Colors.RESET}")
         time.sleep(1)
@@ -156,9 +168,11 @@ def save_keys(keys, filename):
         with open(full_path, 'a') as f:
             for i, key in enumerate(unique_new, 1):
                 f.write(f"{key}\n")
-                if i % 100 == 0:
+                if i % 100 == 0 or i == len(unique_new):
+                    progress = i / len(unique_new) * 100
                     print(f"{Colors.GREEN}[~] ЗАПИСАНО: {i}/{len(unique_new)} "
-                          f"{Colors.DARK_GREEN}| ДУБЛИКАТОВ: {duplicates}", end='\r')
+                          f"({progress:.1f}%) {Colors.DARK_GREEN}| "
+                          f"ДУБЛИКАТОВ: {duplicates}", end='\r')
         
         print(f"\n{Colors.GREEN}[✓] ДАННЫЕ УСПЕШНО ЭКСПОРТИРОВАНЫ")
         print(f"{Colors.DARK_GREEN}├ УНИКАЛЬНЫЕ КЛЮЧИ: {Colors.GREEN}{len(unique_new)}")
@@ -185,34 +199,45 @@ def main():
         try:
             if choice == '1':
                 keys = KeyGenerator.base_keys()
-                print(f"\n{Colors.GREEN}[+] БАЗОВЫЕ КЛЮЧИ ЗАГРУЖЕНЫ: {len(keys)}")
+                print(f"\n{Colors.GREEN}[+] БАЗОВЫЕ КЛЮЧИ ЗАГРУЖЕНЫ: {Colors.YELLOW}{len(keys)}")
+                print(f"{Colors.DARK_GREEN}>>> СПИСОК КЛЮЧЕЙ:")
+                for key in keys:
+                    print(f"{Colors.GREEN}• {Colors.YELLOW}{key}")
                 
             elif choice == '2':
-                uid = input(f"\n{Colors.GREEN}>>> ВВЕДИТЕ UID КАРТЫ: {Colors.YELLOW}").strip()
-                if not all(c in '0123456789ABCDEFabcdef' for c in uid):
-                    print(f"{Colors.RED}[✗] НЕВЕРНЫЙ ФОРМАТ UID!")
-                    continue
-                keys = KeyGenerator.uid_variants(uid)
+                keys = KeyGenerator.transport_dictionary()
+                print(f"\n{Colors.GREEN}[+] ТРАНСПОРТНЫЙ СЛОВАРЬ ЗАГРУЖЕН: {Colors.YELLOW}{len(keys)} ключей")
+                print(f"{Colors.DARK_GREEN}>>> ПЕРВЫЕ 10 КЛЮЧЕЙ ИЗ СЛОВАРЯ:")
+                for key in keys[:10]:
+                    print(f"{Colors.GREEN}• {Colors.YELLOW}{key}")
+                print(f"{Colors.DARK_GREEN}>>> ПОСЛЕДНИЕ 10 КЛЮЧЕЙ ИЗ СЛОВАРЯ:")
+                for key in keys[-10:]:
+                    print(f"{Colors.GREEN}• {Colors.YELLOW}{key}")
+                print(f"{Colors.DARK_GREEN}>>> ОБЩЕЕ КОЛИЧЕСТВО: {Colors.YELLOW}{len(keys)} ключей")
                 
             elif choice == '3':
-                transport = KeyGenerator.transport_keys()
-                print(f"\n{Colors.DARK_GREEN}>>> ДОСТУПНЫЕ ТРАНСПОРТНЫЕ СИСТЕМЫ:")
-                for idx, (key, desc) in enumerate(transport, 1):
-                    print(f"{Colors.GREEN}[{idx}] {Colors.YELLOW}{key} {Colors.DARK_GREEN}- {desc}")
-                keys = [k[0] for k in transport]
-                
-            elif choice == '4':
                 try:
                     count = int(input(f"\n{Colors.GREEN}>>> ВВЕДИТЕ КОЛИЧЕСТВО: {Colors.YELLOW}"))
-                    count = max(1, count)
-                    keys = KeyGenerator.random_keys(count)
-                except:
-                    print(f"{Colors.RED}[✗] НЕВЕРНЫЙ ВВОД!")
+                    count = max(1, min(count, 1000000))  # Ограничение до 1 млн
+                    
+                    print(f"{Colors.GREEN}>>> РЕЖИМ ГЕНЕРАЦИИ:")
+                    print(f"{Colors.GREEN}    {Colors.YELLOW}1.{Colors.GREEN} Полная случайность (быстрее)")
+                    print(f"{Colors.GREEN}    {Colors.YELLOW}2.{Colors.GREEN} Частичная замена (разнообразнее)")
+                    mode_choice = input(f"{Colors.GREEN}>>> ВЫБЕРИТЕ РЕЖИМ (1): {Colors.YELLOW}") or '1'
+                    mode = 0 if mode_choice == '1' else 1
+                    
+                    keys = KeyGenerator.random_keys(count, mode)
+                    print(f"\n{Colors.GREEN}[✓] СГЕНЕРИРОВАНО КЛЮЧЕЙ: {Colors.YELLOW}{len(keys)}")
+                except ValueError:
+                    print(f"{Colors.RED}[✗] НЕВЕРНЫЙ ВВОД! ВВЕДИТЕ ЧИСЛО")
+                    time.sleep(1)
                     continue
             
             if keys:
                 if input(f"\n{Colors.GREEN}>>> ЭКСПОРТИРОВАТЬ РЕЗУЛЬТАТ? (Y/n): {Colors.YELLOW}").lower() != 'n':
                     filename = input(f"{Colors.GREEN}>>> ИМЯ ФАЙЛА ({DEFAULT_FILENAME}): {Colors.YELLOW}") or DEFAULT_FILENAME
+                    if not filename.endswith('.dic'):
+                        filename += '.dic'
                     save_keys(keys, filename)
             
         except Exception as e:
